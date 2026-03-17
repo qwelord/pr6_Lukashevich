@@ -5,13 +5,10 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.example.notes_lukashevich.R;
 import com.example.notes_lukashevich.datas.RepoNotes;
 import com.example.notes_lukashevich.domains.models.Note;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -49,16 +46,12 @@ public class NoteActivity extends AppCompatActivity {
 
         tvDate.setText("Отредактировано: " + FormatForDateNow.format(DateNow));
 
-        bthSelectColor.setOnClickListener(v -> {
-            Toast.makeText(this, "Выбор цвета недоступен", Toast.LENGTH_SHORT).show();
-        });
-
         bthBack.setOnClickListener(v -> {
             String Title = etTitle.getText().toString();
             String Text = etText.getText().toString();
 
             if (Text.replace(" ", "").replace("\r", "").replace("\n", "").isEmpty()) {
-                Toast.makeText(this, "Не чего сохранять", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Нечего сохранять", Toast.LENGTH_SHORT).show();
             } else {
                 if (note == null) {
                     note = new Note();
@@ -67,6 +60,7 @@ public class NoteActivity extends AppCompatActivity {
                 note.title = Title;
                 note.text = Text;
                 note.date = FormatForDateNow.format(DateNow);
+                Toast.makeText(this, "Сохранено", Toast.LENGTH_SHORT).show();
             }
             finish();
         });
@@ -74,7 +68,6 @@ public class NoteActivity extends AppCompatActivity {
         bthTrash.setOnClickListener(v -> {
             RepoNotes.Notes.remove(note);
             finish();
-            Toast.makeText(this, "Заметка удалена", Toast.LENGTH_SHORT).show();
         });
     }
 }

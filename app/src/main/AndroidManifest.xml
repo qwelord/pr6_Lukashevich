@@ -15,7 +15,8 @@
 
         <activity
             android:name=".presentations.NoteActivity"
-            android:exported="true" />
+            android:exported="false"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
 
         <activity
             android:name=".presentations.NotesActivity"

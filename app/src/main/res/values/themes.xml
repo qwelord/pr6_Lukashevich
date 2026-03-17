@@ -5,5 +5,5 @@
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 
-    <style name="Theme.Notes_Lukashevich" parent="Base.Theme.Notes_Lukashevich" />
+    <style name="Theme.Notes_Lukashevich" parent="Theme.MaterialComponents.DayNight.NoActionBar"/>
 </resources>
