@@ -1,14 +1,15 @@
 package com.example.notes_lukashevich.presentations;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.GridLayout;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import com.example.notes_lukashevich.R;
 import com.example.notes_lukashevich.datas.RepoNotes;
 import com.example.notes_lukashevich.domains.models.Note;
@@ -24,11 +25,14 @@ public class NotesActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (getSupportActionBar() != null) getSupportActionBar().hide();
         setContentView(R.layout.activity_notes);
 
         bthAddNotes = findViewById(R.id.bth_add_notes);
         itemsParent = findViewById(R.id.gl_notes);
         etSearch = findViewById(R.id.et_search);
+
+        RepoNotes.loadNotes(this);
 
         bthAddNotes.setOnClickListener(v -> {
             Intent intent = new Intent(this, NoteActivity.class);
@@ -36,11 +40,12 @@ public class NotesActivity extends AppCompatActivity {
         });
 
         etSearch.setOnKeyListener((v, keyCode, event) -> {
-            String Search = etSearch.getText().toString();
-            ArrayList<Note> FindNotes = RepoNotes.Notes.stream()
-                    .filter(item -> item.text.contains(Search) || item.title.contains(Search))
+            String search = etSearch.getText().toString();
+            ArrayList<Note> findNotes = RepoNotes.Notes.stream()
+                    .filter(item -> (item.text != null && item.text.contains(search)) ||
+                            (item.title != null && item.title.contains(search)))
                     .collect(Collectors.toCollection(ArrayList::new));
-            LoadNotes(FindNotes);
+            LoadNotes(findNotes);
             return false;
         });
 
@@ -50,6 +55,7 @@ public class NotesActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        RepoNotes.loadNotes(this);
         LoadNotes(RepoNotes.Notes);
     }
 
@@ -57,9 +63,17 @@ public class NotesActivity extends AppCompatActivity {
         itemsParent.removeAllViews();
         for (int i = 0; i < notes.size(); i++) {
             View item_notes = LayoutInflater.from(this).inflate(R.layout.item_note, itemsParent, false);
-            ((TextView) item_notes.findViewById(R.id.tv_title)).setText(notes.get(i).title);
-            ((TextView) item_notes.findViewById(R.id.tv_text)).setText(notes.get(i).text);
-            ((TextView) item_notes.findViewById(R.id.tv_date)).setText(notes.get(i).date);
+
+            Note currentNote = notes.get(i);
+
+            // Установка цвета карточки
+            if (currentNote.color != null && item_notes instanceof CardView) {
+                ((CardView) item_notes).setCardBackgroundColor(Color.parseColor(currentNote.color));
+            }
+
+            ((TextView) item_notes.findViewById(R.id.tv_title)).setText(currentNote.title);
+            ((TextView) item_notes.findViewById(R.id.tv_text)).setText(currentNote.text);
+            ((TextView) item_notes.findViewById(R.id.tv_date)).setText(currentNote.date);
 
             final int position = i;
             item_notes.setOnClickListener(v -> {

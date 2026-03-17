@@ -1,5 +1,8 @@
 package com.example.notes_lukashevich.presentations;
 
+import android.app.AlertDialog;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -11,6 +14,7 @@ import com.example.notes_lukashevich.datas.RepoNotes;
 import com.example.notes_lukashevich.domains.models.Note;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 public class NoteActivity extends AppCompatActivity {
 
@@ -22,10 +26,8 @@ public class NoteActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (getSupportActionBar() != null) getSupportActionBar().hide();
         setContentView(R.layout.activity_note);
-
-        Date DateNow = new Date();
-        SimpleDateFormat FormatForDateNow = new SimpleDateFormat("HH:mm:ss dd.MM.yyyy");
 
         bthSelectColor = findViewById(R.id.bth_select_color);
         bthBack = findViewById(R.id.bth_back);
@@ -36,38 +38,79 @@ public class NoteActivity extends AppCompatActivity {
 
         Bundle arguments = getIntent().getExtras();
         if (arguments != null) {
-            int Position = arguments.getInt("position");
-            note = RepoNotes.Notes.get(Position);
+            int position = arguments.getInt("position");
+            note = RepoNotes.Notes.get(position);
             etTitle.setText(note.title);
             etText.setText(note.text);
+            if (note.color != null) {
+                updateColorButton(note.color);
+            }
         } else {
             bthTrash.setVisibility(View.GONE);
         }
 
-        tvDate.setText("Отредактировано: " + FormatForDateNow.format(DateNow));
+        updateDateLabel();
+
+        bthSelectColor.setOnClickListener(v -> showColorPickerDialog());
 
         bthBack.setOnClickListener(v -> {
-            String Title = etTitle.getText().toString();
-            String Text = etText.getText().toString();
-
-            if (Text.replace(" ", "").replace("\r", "").replace("\n", "").isEmpty()) {
-                Toast.makeText(this, "Нечего сохранять", Toast.LENGTH_SHORT).show();
-            } else {
-                if (note == null) {
-                    note = new Note();
-                    RepoNotes.Notes.add(note);
-                }
-                note.title = Title;
-                note.text = Text;
-                note.date = FormatForDateNow.format(DateNow);
-                Toast.makeText(this, "Сохранено", Toast.LENGTH_SHORT).show();
-            }
+            saveNote();
             finish();
         });
 
         bthTrash.setOnClickListener(v -> {
-            RepoNotes.Notes.remove(note);
+            if (note != null) {
+                RepoNotes.Notes.remove(note);
+                RepoNotes.saveNotes(this);
+                Toast.makeText(this, "Удалено", Toast.LENGTH_SHORT).show();
+            }
             finish();
         });
+    }
+
+    private void saveNote() {
+        String title = etTitle.getText().toString();
+        String text = etText.getText().toString();
+
+        if (!text.trim().isEmpty()) {
+            if (note == null) {
+                note = new Note();
+                RepoNotes.Notes.add(note);
+            }
+            note.title = title;
+            note.text = text;
+            note.date = new SimpleDateFormat("HH:mm:ss dd.MM.yyyy", Locale.getDefault()).format(new Date());
+            RepoNotes.saveNotes(this);
+        }
+    }
+
+    private void showColorPickerDialog() {
+        final String[] colorNames = {"Синий", "Красный", "Зеленый", "Желтый", "Фиолетовый", "Оранжевый"};
+        final String[] colorCodes = {"#302071F9", "#FFCDD2", "#C8E6C9", "#FFF9C4", "#E1BEE7", "#FFE0B2"};
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Выберите цвет");
+        builder.setItems(colorNames, (dialog, which) -> {
+            if (note == null) {
+                note = new Note();
+                RepoNotes.Notes.add(note);
+            }
+            note.color = colorCodes[which];
+            updateColorButton(note.color);
+            saveNote();
+        });
+        builder.show();
+    }
+
+    private void updateColorButton(String colorHex) {
+        if (colorHex != null && !colorHex.isEmpty()) {
+            int color = Color.parseColor(colorHex);
+            bthSelectColor.setBackgroundTintList(ColorStateList.valueOf(color));
+        }
+    }
+
+    private void updateDateLabel() {
+        String current = new SimpleDateFormat("HH:mm:ss dd.MM.yyyy", Locale.getDefault()).format(new Date());
+        tvDate.setText("Отредактировано: " + current);
     }
 }
