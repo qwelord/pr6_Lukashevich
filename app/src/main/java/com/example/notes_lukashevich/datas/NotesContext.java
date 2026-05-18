@@ -44,6 +44,22 @@ public class NotesContext {
         }
     }
 
+    public static Note GetNoteById(int id) {
+        Cursor cursor = DbContext.sqLiteDatabase.query("Notes", null, "Id = ?", new String[]{String.valueOf(id)}, null, null, null);
+        if (cursor.moveToFirst() == false) {
+            cursor.close();
+            return null;
+        }
+        Note note = new Note();
+        note.id = cursor.getInt(0);
+        note.title = cursor.getString(1);
+        note.text = cursor.getString(2);
+        note.date = cursor.getString(3);
+        note.color = cursor.getString(4);
+        cursor.close();
+        return note;
+    }
+
     public static void Delete(Note note) {
         DbContext.sqLiteDatabase.delete("Notes", "Id = ?", new String[] {String.valueOf(note.id)});
     }

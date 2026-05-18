@@ -10,7 +10,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.notes_lukashevich.R;
-import com.example.notes_lukashevich.datas.RepoNotes;
+import com.example.notes_lukashevich.datas.NotesContext;
 import com.example.notes_lukashevich.domains.models.Note;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -22,6 +22,7 @@ public class NoteActivity extends AppCompatActivity {
     EditText etTitle, etText;
     TextView tvDate;
     View bthSelectColor, bthBack, bthTrash;
+    boolean isUpdate = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,12 +39,15 @@ public class NoteActivity extends AppCompatActivity {
 
         Bundle arguments = getIntent().getExtras();
         if (arguments != null) {
-            int position = arguments.getInt("position");
-            note = RepoNotes.Notes.get(position);
-            etTitle.setText(note.title);
-            etText.setText(note.text);
-            if (note.color != null) {
-                updateColorButton(note.color);
+            int id = arguments.getInt("Id");
+            note = NotesContext.GetNoteById(id);
+            if (note != null) {
+                etTitle.setText(note.title);
+                etText.setText(note.text);
+                isUpdate = true;
+                if (note.color != null) {
+                    updateColorButton(note.color);
+                }
             }
         } else {
             bthTrash.setVisibility(View.GONE);
@@ -60,13 +64,14 @@ public class NoteActivity extends AppCompatActivity {
 
         bthTrash.setOnClickListener(v -> {
             if (note != null) {
-                RepoNotes.Notes.remove(note);
-                RepoNotes.saveNotes(this);
+                NotesContext.Delete(note);
                 Toast.makeText(this, "Удалено", Toast.LENGTH_SHORT).show();
             }
             finish();
         });
     }
+
+
 
     private void saveNote() {
         String title = etTitle.getText().toString();
@@ -75,12 +80,12 @@ public class NoteActivity extends AppCompatActivity {
         if (!text.trim().isEmpty()) {
             if (note == null) {
                 note = new Note();
-                RepoNotes.Notes.add(note);
             }
             note.title = title;
             note.text = text;
             note.date = new SimpleDateFormat("HH:mm:ss dd.MM.yyyy", Locale.getDefault()).format(new Date());
-            RepoNotes.saveNotes(this);
+
+            NotesContext.Save(note, isUpdate);
         }
     }
 
@@ -93,11 +98,11 @@ public class NoteActivity extends AppCompatActivity {
         builder.setItems(colorNames, (dialog, which) -> {
             if (note == null) {
                 note = new Note();
-                RepoNotes.Notes.add(note);
             }
             note.color = colorCodes[which];
             updateColorButton(note.color);
             saveNote();
+            isUpdate = true;
         });
         builder.show();
     }
