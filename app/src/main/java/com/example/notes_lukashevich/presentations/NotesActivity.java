@@ -66,7 +66,6 @@ public class NotesActivity extends AppCompatActivity {
 
             Note currentNote = notes.get(i);
 
-            // Установка цвета карточки
             if (currentNote.color != null && item_notes instanceof CardView) {
                 ((CardView) item_notes).setCardBackgroundColor(Color.parseColor(currentNote.color));
             }
@@ -75,10 +74,11 @@ public class NotesActivity extends AppCompatActivity {
             ((TextView) item_notes.findViewById(R.id.tv_text)).setText(currentNote.text);
             ((TextView) item_notes.findViewById(R.id.tv_date)).setText(currentNote.date);
 
-            final int position = i;
+            final int realPosition = RepoNotes.Notes.indexOf(currentNote);
+
             item_notes.setOnClickListener(v -> {
                 Intent intent = new Intent(this, NoteActivity.class);
-                intent.putExtra("position", position);
+                intent.putExtra("position", realPosition);
                 startActivity(intent);
             });
             itemsParent.addView(item_notes);

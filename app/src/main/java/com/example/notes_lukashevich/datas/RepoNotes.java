@@ -1,33 +1,51 @@
 package com.example.notes_lukashevich.datas;
 
+import android.content.ContentValues;
 import android.content.Context;
-import android.content.SharedPreferences;
+import android.database.Cursor;
 import com.example.notes_lukashevich.domains.models.Note;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 public class RepoNotes {
     public static ArrayList<Note> Notes = new ArrayList<>();
-    private static final String PREF_NAME = "notes_prefs";
-    private static final String KEY_NOTES = "notes_list";
 
     public static void saveNotes(Context context) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        Gson gson = new Gson();
-        String json = gson.toJson(Notes);
-        editor.putString(KEY_NOTES, json);
-        editor.apply();
+        if (DbContext.sqLiteDatabase == null) {
+            new DbContext(context);
+        }
+
+        DbContext.sqLiteDatabase.delete("Notes", null, null);
+
+        for (Note note : Notes) {
+            ContentValues values = new ContentValues();
+            values.put("Id", note.id);
+            values.put("Title", note.title);
+            values.put("Text", note.text);
+            values.put("Date", note.date);
+            values.put("Color", note.color);
+            DbContext.sqLiteDatabase.insert("Notes", null, values);
+        }
     }
 
     public static void loadNotes(Context context) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        Gson gson = new Gson();
-        String json = sharedPreferences.getString(KEY_NOTES, null);
-        Type type = new TypeToken<ArrayList<Note>>() {}.getType();
-        Notes = gson.fromJson(json, type);
-        if (Notes == null) Notes = new ArrayList<>();
+        if (DbContext.sqLiteDatabase == null) {
+            new DbContext(context);
+        }
+
+        Notes.clear();
+        Cursor cursor = DbContext.sqLiteDatabase.query("Notes", null, null, null, null, null, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                Note note = new Note();
+                note.id = cursor.getInt(cursor.getColumnIndexOrThrow("Id"));
+                note.title = cursor.getString(cursor.getColumnIndexOrThrow("Title"));
+                note.text = cursor.getString(cursor.getColumnIndexOrThrow("Text"));
+                note.date = cursor.getString(cursor.getColumnIndexOrThrow("Date"));
+                note.color = cursor.getString(cursor.getColumnIndexOrThrow("Color"));
+                Notes.add(note);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
     }
 }
