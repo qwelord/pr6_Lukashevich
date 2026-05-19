@@ -71,8 +71,6 @@ public class NoteActivity extends AppCompatActivity {
         });
     }
 
-
-
     private void saveNote() {
         String title = etTitle.getText().toString();
         String text = etText.getText().toString();
