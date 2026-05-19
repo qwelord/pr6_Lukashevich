@@ -3,6 +3,7 @@ package com.example.notes_lukashevich.presentations;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -11,7 +12,8 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import com.example.notes_lukashevich.R;
-import com.example.notes_lukashevich.datas.RepoNotes;
+import com.example.notes_lukashevich.datas.DbContext;
+import com.example.notes_lukashevich.datas.NotesContext;
 import com.example.notes_lukashevich.domains.models.Note;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
@@ -21,6 +23,7 @@ public class NotesActivity extends AppCompatActivity {
     GridLayout itemsParent;
     View bthAddNotes;
     EditText etSearch;
+    DbContext dbContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,31 +35,21 @@ public class NotesActivity extends AppCompatActivity {
         itemsParent = findViewById(R.id.gl_notes);
         etSearch = findViewById(R.id.et_search);
 
-        RepoNotes.loadNotes(this);
-
         bthAddNotes.setOnClickListener(v -> {
             Intent intent = new Intent(this, NoteActivity.class);
             startActivity(intent);
         });
 
-        etSearch.setOnKeyListener((v, keyCode, event) -> {
-            String search = etSearch.getText().toString();
-            ArrayList<Note> findNotes = RepoNotes.Notes.stream()
-                    .filter(item -> (item.text != null && item.text.contains(search)) ||
-                            (item.title != null && item.title.contains(search)))
-                    .collect(Collectors.toCollection(ArrayList::new));
-            LoadNotes(findNotes);
-            return false;
-        });
+        etSearch.setOnKeyListener(SearchListener);
 
-        LoadNotes(RepoNotes.Notes);
+        dbContext = new DbContext(this);
+        LoadNotes(NotesContext.AllNotes());
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        RepoNotes.loadNotes(this);
-        LoadNotes(RepoNotes.Notes);
+        LoadNotes(NotesContext.AllNotes());
     }
 
     public void LoadNotes(ArrayList<Note> notes) {
@@ -74,14 +67,26 @@ public class NotesActivity extends AppCompatActivity {
             ((TextView) item_notes.findViewById(R.id.tv_text)).setText(currentNote.text);
             ((TextView) item_notes.findViewById(R.id.tv_date)).setText(currentNote.date);
 
-            final int realPosition = RepoNotes.Notes.indexOf(currentNote);
+            final int realPosition = i;
 
             item_notes.setOnClickListener(v -> {
                 Intent intent = new Intent(this, NoteActivity.class);
-                intent.putExtra("position", realPosition);
+                intent.putExtra("Id", currentNote.id);
                 startActivity(intent);
             });
             itemsParent.addView(item_notes);
         }
     }
+
+    View.OnKeyListener SearchListener = (v, keyCode, event) -> {
+        String search = etSearch.getText().toString();
+
+        ArrayList<Note> findNotes = NotesContext.AllNotes().stream()
+                .filter(item -> (item.text != null && item.text.contains(search)) ||
+                        (item.title != null && item.title.contains(search)))
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        LoadNotes(findNotes);
+        return false;
+    };
 }
