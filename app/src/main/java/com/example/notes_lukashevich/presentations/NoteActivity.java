@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,6 +23,7 @@ public class NoteActivity extends AppCompatActivity {
     EditText etTitle, etText;
     TextView tvDate;
     View bthSelectColor, bthBack, bthTrash;
+    ImageView ivVersions;
     boolean isUpdate = false;
 
     @Override
@@ -33,6 +35,7 @@ public class NoteActivity extends AppCompatActivity {
         bthSelectColor = findViewById(R.id.bth_select_color);
         bthBack = findViewById(R.id.bth_back);
         bthTrash = findViewById(R.id.bth_trash);
+        ivVersions = findViewById(R.id.iv_versions);
         etTitle = findViewById(R.id.et_title);
         etText = findViewById(R.id.et_text);
         tvDate = findViewById(R.id.tv_date);
@@ -51,6 +54,7 @@ public class NoteActivity extends AppCompatActivity {
             }
         } else {
             bthTrash.setVisibility(View.GONE);
+            ivVersions.setVisibility(View.GONE);
         }
 
         updateDateLabel();
@@ -69,6 +73,8 @@ public class NoteActivity extends AppCompatActivity {
             }
             finish();
         });
+
+        ivVersions.setOnClickListener(v -> showVersionsDialog());
     }
 
     private void saveNote() {
@@ -79,12 +85,40 @@ public class NoteActivity extends AppCompatActivity {
             if (note == null) {
                 note = new Note();
             }
+            if (isUpdate && note.id != 0) {
+                NotesContext.saveVersion(note);
+            }
             note.title = title;
             note.text = text;
             note.date = new SimpleDateFormat("HH:mm:ss dd.MM.yyyy", Locale.getDefault()).format(new Date());
 
             NotesContext.Save(note, isUpdate);
         }
+    }
+
+    private void showVersionsDialog() {
+        if (note == null || note.id == 0) return;
+        java.util.ArrayList<Note> versions = NotesContext.getVersions(note.id);
+        if (versions.isEmpty()) {
+            Toast.makeText(this, "Нет сохранённых версий", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String[] titles = new String[versions.size()];
+        for (int i = 0; i < versions.size(); i++) {
+            titles[i] = versions.get(i).date + " - " + (versions.get(i).title.isEmpty() ? "без заголовка" : versions.get(i).title);
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Выберите версию для восстановления");
+        builder.setItems(titles, (dialog, which) -> {
+            Note selectedVersion = versions.get(which);
+            NotesContext.restoreVersion(note.id, selectedVersion);
+            note = NotesContext.GetNoteById(note.id);
+            etTitle.setText(note.title);
+            etText.setText(note.text);
+            updateDateLabel();
+            Toast.makeText(this, "Версия восстановлена", Toast.LENGTH_SHORT).show();
+        });
+        builder.show();
     }
 
     private void showColorPickerDialog() {

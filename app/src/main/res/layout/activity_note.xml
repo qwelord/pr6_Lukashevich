@@ -21,6 +21,17 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
+        android:id="@+id/iv_versions"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="45dp"
+        android:layout_marginEnd="65dp"
+        android:padding="8dp"
+        android:src="@drawable/ic_history"
+        app:layout_constraintEnd_toStartOf="@+id/bth_trash"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
         android:id="@+id/bth_trash"
         android:layout_width="40dp"
         android:layout_height="40dp"
@@ -39,7 +50,7 @@
         android:layout_marginEnd="15dp"
         app:cardBackgroundColor="#2071F9"
         app:cardCornerRadius="15dp"
-        app:layout_constraintEnd_toStartOf="@+id/bth_trash"
+        app:layout_constraintEnd_toStartOf="@+id/iv_versions"
         app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
