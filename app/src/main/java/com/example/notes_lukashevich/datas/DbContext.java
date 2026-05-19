@@ -8,7 +8,7 @@ public class DbContext extends SQLiteOpenHelper {
 
     public static SQLiteDatabase sqLiteDatabase;
 
-    public static final String DATABASE_NAME = "DbNotes";
+    public static final String DATABASE_NAME = "DBNotes";
     public static final int DATABASE_VERSION = 1;
 
     public DbContext(Context context) {
